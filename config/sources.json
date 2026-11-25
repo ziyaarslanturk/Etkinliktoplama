@@ -1,0 +1,25 @@
+{
+  "_aciklama": "Sayfa tabanlı kaynaklar. Yalnızca sayfada schema.org/Event (JSON-LD) veya .ics varsa kayıt üretilir. URL'leri canlı sayfaya göre düzenleyebilirsiniz; hatalı URL sistemi çökertmez.",
+  "federations": [
+    {
+      "name": "ficc",
+      "enabled": true,
+      "pages": ["https://ficc.org/en/rallies/"],
+      "follow": {"path_contains": ["/rallies/"], "max_pages": 30},
+      "default_interest": "caravan",
+      "default_sub_type": "caravan_rally"
+    },
+    {
+      "name": "uiaa",
+      "enabled": true,
+      "pages": ["https://www.theuiaa.org/events/"],
+      "follow": {"path_contains": ["/event"], "max_pages": 30}
+    }
+  ],
+  "tobb": {
+    "enabled": true,
+    "url_template": "https://fuarlar.tobb.org.tr/FuarTakvimi/{year}",
+    "years_ahead": 1
+  },
+  "local_official": []
+}

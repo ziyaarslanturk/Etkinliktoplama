@@ -1,0 +1,21 @@
+[
+  {
+    "title": "BURAYA GERÇEK ETKİNLİK ADI",
+    "classification": { "interest": "camping", "sub_type": "camp_festival" },
+    "poster_url": null,
+    "schedule": {
+      "start_date": "YYYY-MM-DD", "end_date": "YYYY-MM-DD",
+      "start_time": null, "end_time": null, "timezone": "Europe/Istanbul"
+    },
+    "location": {
+      "country_code": "TR", "city": null, "venue_name": null, "address": null, "lat": null, "lng": null
+    },
+    "details": {
+      "summary": null, "organizer": null, "guests": [],
+      "participants": { "target_audience": [], "exhibitors_or_brands": [], "estimated_capacity": null },
+      "entry_fee": null, "tags": []
+    },
+    "links": { "official_url": "https://GERCEK-RESMI-ADRES", "ticket_or_register_url": null },
+    "meta": { "verified": true }
+  }
+]
