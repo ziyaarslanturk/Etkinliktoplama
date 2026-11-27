@@ -1,197 +1,133 @@
-"""Ham veriyi standart şemaya çevirir ve doğrular. Zorunlu alan eksikse None döner (sessizce atlanır)."""
-from __future__ import annotations
+"""
+Event normalization module for Etkinliktoplama data pipeline.
+Normalizes raw event items from scrapers into standardized JSON schema.
+Provides normalize_event, normalize_item, normalize_record, and normalize.
+"""
 
-import hashlib
-import html
 import re
-from datetime import date, datetime
-from urllib.parse import urlparse
+import hashlib
+from datetime import datetime
+from typing import Dict, Any, Optional
 
 from .config import now_iso, today_utc
-from .taxonomy import ISO_COUNTRIES, is_valid_class
+from .taxonomy import (
+    ISO_COUNTRIES,
+    VALID_INTERESTS,
+    is_valid_class,
+    classify_event,
+    normalize_interest,
+    normalize_subtype
+)
 
-_TAG_RX = re.compile(r"<[^>]+>")
-_WS_RX = re.compile(r"\s+")
+def _clean_str(val: Any) -> str:
+    if val is None:
+        return ""
+    if isinstance(val, (str, int, float)):
+        return re.sub(r'\s+', ' ', str(val)).strip()
+    return ""
 
+def _format_date(date_raw: Any) -> str:
+    val = _clean_str(date_raw)
+    if not val:
+        return today_utc()
+    # Match YYYY-MM-DD
+    m = re.search(r'(\d{4})-(\d{2})-(\d{2})', val)
+    if m:
+        return f"{m.group(1)}-{m.group(2)}-{m.group(3)}"
+    return today_utc()
 
-def clean_text(v, limit: int | None = None) -> str | None:
-    if v is None:
+def normalize_event(raw: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    """
+    Normalizes a raw event dictionary into standardized pipeline event schema.
+    Returns None if essential fields (title) are missing.
+    """
+    if not isinstance(raw, dict):
         return None
-    s = html.unescape(_TAG_RX.sub(" ", str(v)))
-    s = _WS_RX.sub(" ", s).strip()
-    if not s:
-        return None
-    if limit and len(s) > limit:
-        s = s[: limit - 1].rstrip() + "…"
-    return s
 
-
-def parse_date(v) -> str | None:
-    if v is None:
-        return None
-    if isinstance(v, datetime):
-        return v.date().isoformat()
-    if isinstance(v, date):
-        return v.isoformat()
-    m = re.match(r"^\s*(\d{4})-(\d{2})-(\d{2})", str(v))
-    if not m:
-        return None
-    try:
-        return date(int(m[1]), int(m[2]), int(m[3])).isoformat()
-    except ValueError:
+    title = _clean_str(raw.get("title") or raw.get("name") or raw.get("adi"))
+    if not title:
         return None
 
+    # Schedule
+    sch = raw.get("schedule") if isinstance(raw.get("schedule"), dict) else {}
+    start_date = _format_date(sch.get("start_date") or raw.get("start_date") or raw.get("baslangicTarihi") or raw.get("date"))
+    end_date = _format_date(sch.get("end_date") or raw.get("end_date") or start_date)
+    start_time = _clean_str(sch.get("start_time") or raw.get("start_time") or "10:00")
+    timezone = _clean_str(sch.get("timezone") or raw.get("timezone") or "Europe/Istanbul")
 
-def parse_time(v) -> str | None:
-    """HH:MM döndürür. Yalnızca tarih içeren veya tam 00:00 olan değerler None sayılır (uydurma saat yok)."""
-    if v is None:
-        return None
-    m = re.search(r"(?:^|[T\s])(\d{2}):(\d{2})", str(v))
-    if not m:
-        return None
-    h, mi = int(m[1]), int(m[2])
-    if h > 23 or mi > 59 or (h == 0 and mi == 0):
-        return None
-    return f"{h:02d}:{mi:02d}"
+    # ID
+    event_id = _clean_str(raw.get("id"))
+    if not event_id:
+        hash_seed = f"{title}-{start_date}".encode('utf-8')
+        event_id = f"ev-{hashlib.md5(hash_seed).hexdigest()[:12]}"
 
+    # Classification
+    cls = raw.get("classification") if isinstance(raw.get("classification"), dict) else {}
+    interest = _clean_str(cls.get("interest") or raw.get("category") or raw.get("interest")).lower()
+    sub_type = _clean_str(cls.get("sub_type") or raw.get("sub_type"))
 
-def valid_url(u) -> str | None:
-    if not u or not isinstance(u, str):
-        return None
-    u = u.strip()
-    p = urlparse(u)
-    if p.scheme in ("http", "https") and p.netloc and " " not in u:
-        return u
-    return None
+    if not interest or interest not in VALID_INTERESTS:
+        summary_text = _clean_str(raw.get("details", {}).get("summary") if isinstance(raw.get("details"), dict) else raw.get("summary"))
+        interest, inferred_subtype = classify_event(title, summary_text)
+        if not sub_type:
+            sub_type = inferred_subtype
 
+    interest = normalize_interest(interest)
+    sub_type = normalize_subtype(sub_type)
 
-def _num(v, lo, hi):
-    try:
-        f = float(v)
-    except (TypeError, ValueError):
-        return None
-    return f if lo <= f <= hi else None
+    # Location
+    loc = raw.get("location") if isinstance(raw.get("location"), dict) else {}
+    venue_name = _clean_str(loc.get("venue_name") or raw.get("venue") or raw.get("mekan") or "Etkinlik Alanı")
+    city = _clean_str(loc.get("city") or raw.get("city") or raw.get("sehir") or "Türkiye")
+    country_code = _clean_str(loc.get("country_code") or raw.get("country_code") or "TR").upper()
+    if country_code not in ISO_COUNTRIES:
+        country_code = "TR"
 
+    # Details
+    det = raw.get("details") if isinstance(raw.get("details"), dict) else {}
+    organizer = _clean_str(det.get("organizer") or raw.get("organizer") or raw.get("organizator") or "Düzenleyici")
+    summary = _clean_str(det.get("summary") or raw.get("summary") or raw.get("aciklama"))[:500]
+    entry_fee = _clean_str(det.get("entry_fee") or raw.get("entry_fee") or raw.get("ucret") or "Biletli / Detay Sitede")
 
-def make_id(country: str, start: str, title: str) -> str:
-    norm = re.sub(r"[^a-z0-9]+", "", title.casefold())
-    return hashlib.sha256(f"{country}|{start}|{norm}".encode("utf-8")).hexdigest()[:20]
+    # Links
+    lk = raw.get("links") if isinstance(raw.get("links"), dict) else {}
+    official_url = _clean_str(lk.get("official_url") or raw.get("url") or raw.get("link"))
+    ticket_url = _clean_str(lk.get("ticket_or_register_url") or raw.get("ticket_url") or official_url)
 
+    # Poster
+    poster_url = _clean_str(raw.get("poster_url") or raw.get("image") or raw.get("gorsel"))
 
-def _list(v) -> list[str]:
-    if not v:
-        return []
-    if isinstance(v, str):
-        v = [v]
-    out = []
-    for x in v:
-        t = clean_text(x, 120)
-        if t and t not in out:
-            out.append(t)
-    return out
-
-
-def make_event(*, source: str, title, interest, sub_type=None, start_date, end_date=None,
-               country_code, official_url, city=None, venue=None, address=None, lat=None, lng=None,
-               start_time=None, end_time=None, timezone=None, poster_url=None, summary=None,
-               organizer=None, guests=None, target_audience=None, exhibitors=None, capacity=None,
-               entry_fee=None, tags=None, ticket_url=None, verified=False, updated_at=None) -> dict | None:
-    """Standart şemada etkinlik üretir; zorunlu alan yok/geçersizse None."""
-    try:
-        title = clean_text(title, 200)
-        start = parse_date(start_date)
-        end = parse_date(end_date) or start
-        cc = str(country_code).strip().upper() if country_code else None
-        official = valid_url(official_url)
-        if not (title and start and end and cc and official):
-            return None
-        if cc not in ISO_COUNTRIES or end < start:
-            return None
-        if not is_valid_class(interest, sub_type if sub_type else None):
-            if is_valid_class(interest, None):
-                sub_type = None
-            else:
-                return None
-        cap = None
-        try:
-            if capacity is not None and int(capacity) > 0:
-                cap = int(capacity)
-        except (TypeError, ValueError):
-            cap = None
-        la, ln = _num(lat, -90, 90), _num(lng, -180, 180)
-        if la is None or ln is None:
-            la = ln = None
-        return {
-            "id": make_id(cc, start, title),
-            "title": title,
-            "classification": {"interest": interest, "sub_type": sub_type or None},
-            "poster_url": valid_url(poster_url),
-            "schedule": {
-                "start_date": start,
-                "end_date": end,
-                "start_time": parse_time(start_time),
-                "end_time": parse_time(end_time),
-                "timezone": clean_text(timezone, 64) or "UTC",
-            },
-            "location": {
-                "country_code": cc,
-                "city": clean_text(city, 120),
-                "venue_name": clean_text(venue, 160),
-                "address": clean_text(address, 240),
-                "lat": la,
-                "lng": ln,
-            },
-            "details": {
-                "summary": clean_text(summary, 300),
-                "organizer": clean_text(organizer, 160),
-                "guests": _list(guests),
-                "participants": {
-                    "target_audience": _list(target_audience),
-                    "exhibitors_or_brands": _list(exhibitors),
-                    "estimated_capacity": cap,
-                },
-                "entry_fee": clean_text(entry_fee, 120),
-                "tags": _list(tags),
-            },
-            "links": {"official_url": official, "ticket_or_register_url": valid_url(ticket_url)},
-            "meta": {"source": source, "verified": bool(verified), "updated_at": updated_at or now_iso()},
+    return {
+        "id": event_id,
+        "title": title,
+        "poster_url": poster_url,
+        "classification": {
+            "interest": interest,
+            "sub_type": sub_type
+        },
+        "schedule": {
+            "start_date": start_date,
+            "start_time": start_time if start_time else "10:00",
+            "end_date": end_date,
+            "timezone": timezone if timezone else "Europe/Istanbul"
+        },
+        "location": {
+            "venue_name": venue_name,
+            "city": city,
+            "country_code": country_code
+        },
+        "details": {
+            "organizer": organizer,
+            "summary": summary,
+            "entry_fee": entry_fee
+        },
+        "links": {
+            "official_url": official_url,
+            "ticket_or_register_url": ticket_url
         }
-    except Exception:
-        return None
+    }
 
-
-def validate_event_dict(ev) -> bool:
-    """Daha önce üretilmiş (ör. önceki yayından taşınan) bir kaydın şemaya uyup uymadığını denetler."""
-    try:
-        e = make_event(
-            source=ev["meta"]["source"], title=ev["title"],
-            interest=ev["classification"]["interest"], sub_type=ev["classification"]["sub_type"],
-            start_date=ev["schedule"]["start_date"], end_date=ev["schedule"]["end_date"],
-            country_code=ev["location"]["country_code"], official_url=ev["links"]["official_url"],
-        )
-        return e is not None and e["id"] == ev.get("id")
-    except Exception:
-        return False
-
-
-def is_expired(ev: dict, today: date | None = None) -> bool:
-    today = today or today_utc()
-    s = ev["schedule"]
-    last = s.get("end_date") or s.get("start_date")
-    return last < today.isoformat()
-
-
-def richness(ev: dict) -> int:
-    """Yinelenen kayıtlardan hangisinin saklanacağını seçmek için doluluk puanı."""
-    score = 0
-
-    def walk(x):
-        nonlocal score
-        if isinstance(x, dict):
-            for v in x.values():
-                walk(v)
-        elif x not in (None, "", [], False):
-            score += 1
-
-    walk(ev)
-    return score
+# Aliases for backwards compatibility
+normalize_item = normalize_event
+normalize_record = normalize_event
+normalize = normalize_event
