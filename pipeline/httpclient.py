@@ -1,77 +1,59 @@
-"""Hata vermeyen HTTP katmanı: yalnızca standart kütüphane, yeniden deneme + geri çekilme.
-
-Hiçbir fonksiyon istisna fırlatmaz; başarısızlıkta None döner.
 """
-from __future__ import annotations
+Robust HTTP client for fetching event feeds and web scraping.
+Includes custom User-Agent, SSL fallback, and timeout management.
+"""
 
-import json
-import re
-import ssl
-import sys
-import time
-import urllib.error
-import urllib.parse
+import logging
 import urllib.request
+import urllib.error
+import ssl
+import json
+from typing import Optional, Dict, Any
 
-UA = "OutdoorEventsPipeline/1.0 (GitHub Actions; open data aggregator)"
-MAX_BYTES = 20 * 1024 * 1024
-_SECRET_RX = re.compile(r"(apikey|api_key|key|token)=[^&\s]+", re.IGNORECASE)
+logger = logging.getLogger("pipeline.httpclient")
 
+DEFAULT_HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,application/json;q=0.8,*/*;q=0.8",
+    "Accept-Language": "tr-TR,tr;q=0.9,en-US;q=0.8,en;q=0.7",
+}
 
-def redact(text: str) -> str:
-    return _SECRET_RX.sub(r"\1=***", str(text))
-
-
-def log(msg: str) -> None:
-    text = redact(msg)
-    if len(text) > 220:
-        text = text[:220] + "…"
-    print(text, file=sys.stderr, flush=True)
-
-
-def fetch_text(url: str, params: dict | None = None, headers: dict | None = None,
-               retries: int = 3, timeout: int = 30, pause: float = 0.0) -> str | None:
-    if params:
-        url = url + ("&" if "?" in url else "?") + urllib.parse.urlencode(params)
-    hdrs = {"User-Agent": UA, "Accept": "*/*"}
+def fetch_url(url: str, headers: Optional[Dict[str, str]] = None, timeout: int = 15) -> Optional[str]:
+    """
+    Fetches raw text content from given URL with fallback SSL handling.
+    """
+    req_headers = DEFAULT_HEADERS.copy()
     if headers:
-        hdrs.update(headers)
-    for attempt in range(retries):
-        try:
-            if pause:
-                time.sleep(pause)
-            req = urllib.request.Request(url, headers=hdrs)
-            with urllib.request.urlopen(req, timeout=timeout) as resp:
-                raw = resp.read(MAX_BYTES)
-                charset = resp.headers.get_content_charset() or "utf-8"
-                return raw.decode(charset, errors="replace")
-        except urllib.error.HTTPError as e:
-            if e.code == 429 or 500 <= e.code < 600:
-                wait = 2 ** (attempt + 1)
-                try:
-                    wait = min(int(e.headers.get("Retry-After", wait)), 60)
-                except (TypeError, ValueError):
-                    pass
-                log(f"HTTP {e.code} (deneme {attempt + 1}/{retries}): {url}")
-                time.sleep(wait)
-                continue
-            log(f"HTTP {e.code}: {url}")
-            return None
-        except (urllib.error.URLError, TimeoutError, ssl.SSLError, ConnectionError, OSError, ValueError) as e:
-            log(f"Ağ hatası (deneme {attempt + 1}/{retries}): {url} -> {type(e).__name__}")
-            time.sleep(2 ** (attempt + 1))
-        except Exception as e:  # beklenmeyen: yine de çökertme
-            log(f"Beklenmeyen HTTP hatası: {url} -> {type(e).__name__}")
-            return None
-    return None
+        req_headers.update(headers)
 
+    req = urllib.request.Request(url, headers=req_headers)
 
-def fetch_json(url: str, **kw):
-    text = fetch_text(url, **kw)
-    if text is None:
+    # Context 1: Strict SSL
+    try:
+        ctx = ssl.create_default_context()
+        with urllib.request.urlopen(req, timeout=timeout, context=ctx) as resp:
+            return resp.read().decode('utf-8', errors='ignore')
+    except Exception as e:
+        logger.debug(f"Default SSL fetch failed for {url}: {e}")
+
+    # Context 2: Fallback unverified SSL (for municipal/forum servers with self-signed SSL)
+    try:
+        ctx_unverified = ssl._create_unverified_context()
+        with urllib.request.urlopen(req, timeout=timeout, context=ctx_unverified) as resp:
+            return resp.read().decode('utf-8', errors='ignore')
+    except Exception as e:
+        logger.warning(f"Failed to fetch {url}: {e}")
+        return None
+
+def fetch_json(url: str, headers: Optional[Dict[str, str]] = None, timeout: int = 15) -> Optional[Any]:
+    """
+    Fetches and parses JSON from given URL.
+    """
+    content = fetch_url(url, headers=headers, timeout=timeout)
+    if not content:
         return None
     try:
-        return json.loads(text)
-    except (ValueError, RecursionError):
-        log(f"Geçersiz JSON: {url}")
+        return json.loads(content)
+    except Exception as e:
+        logger.warning(f"Failed to parse JSON from {url}: {e}")
         return None
