@@ -3,22 +3,17 @@
     {
       "id": "community",
       "enabled": true,
-      "description": "Manuel/topluluk tarafından eklenen etkinlikler"
+      "description": "Manuel ve topluluk tarafından eklenen etkinlikler"
     },
     {
       "id": "web_social",
       "enabled": true,
-      "description": "Web siteleri, forumlar, belediye kültür portalları ve sosyal medya akışları"
-    },
-    {
-      "id": "ticketmaster",
-      "enabled": true,
-      "description": "Ticketmaster API üzerinden uluslararası ve bölgeslik etkinlikler"
+      "description": "Web siteleri, doğa/kamp forumları, belediye kültür portalları ve RSS akışları"
     },
     {
       "id": "local_official",
       "enabled": true,
-      "description": "Yerel belediyeler ve resmi kültür kaynakları"
+      "description": "Yerel belediyeler ve açık kültür portalı kaynakları"
     },
     {
       "id": "federations",
@@ -28,12 +23,22 @@
     {
       "id": "pages",
       "enabled": true,
-      "description": "Web sayfalarından doğrudan çekilen etkinlikler"
+      "description": "Web sayfalarından doğrudan çekilen açık etkinlikler"
     },
     {
       "id": "wikidata",
       "enabled": true,
-      "description": "Wikidata SPARQL sorgusu"
+      "description": "Wikidata açık SPARQL sorgusu"
+    },
+    {
+      "id": "ticketmaster",
+      "enabled": false,
+      "description": "Devre dışı (API Anahtarı Gerektirir)"
+    },
+    {
+      "id": "recreation_gov",
+      "enabled": false,
+      "description": "Devre dışı (API Anahtarı Gerektirir)"
     }
   ]
 }
