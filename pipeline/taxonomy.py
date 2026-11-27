@@ -1,7 +1,7 @@
 """
 Taxonomy and category classification for event pipeline.
 Categorizes events by interest: concert, festival, fair, camping, outdoor, sport, culture, other.
-Provides ISO_COUNTRIES, VALID_INTERESTS, and is_valid_class validator.
+Provides ISO_COUNTRIES, VALID_INTERESTS, VALID_SUB_TYPES, and classification helpers.
 """
 
 import re
@@ -16,6 +16,11 @@ ISO_COUNTRIES: Set[str] = {
 VALID_INTERESTS: Set[str] = {
     "concert", "festival", "fair", "camping", "outdoor", "sport", "culture", "other",
     "music", "sports", "arts", "family", "community", "conference"
+}
+
+VALID_SUB_TYPES: Set[str] = {
+    "müzik", "konser", "fuar", "kamp", "karavan", "doğa", "spor", "tiyatro", "sergi",
+    "film", "atölye", "dans", "konferans", "diğer", "general", "outdoor", "festival"
 }
 
 TAXONOMY_MAP = {
@@ -79,3 +84,16 @@ def classify_event(title: str, description: str = "") -> Tuple[str, str]:
                 return category, sub_type
 
     return "other", ""
+
+def normalize_interest(interest: str) -> str:
+    """Normalizes interest category string."""
+    if not interest:
+        return "other"
+    val = str(interest).lower().strip()
+    return val if val in VALID_INTERESTS else "other"
+
+def normalize_subtype(sub_type: str) -> str:
+    """Normalizes sub_type string."""
+    if not sub_type:
+        return ""
+    return str(sub_type).strip()
