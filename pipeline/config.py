@@ -1,12 +1,15 @@
 """
 Configuration module for Etkinliktoplama data pipeline.
-Provides now_iso, today_utc, load_sources_config, load_sources, and get_output_dir.
+Provides now_iso, today_utc, load_sources_config, load_sources, get_output_dir, and environment getters.
 """
 
 import json
 import os
 from datetime import datetime, timezone
 from typing import List, Dict, Any
+
+DEFAULT_TIMEZONE = "Europe/Istanbul"
+SOURCES_FILE = "config/sources.json"
 
 def now_iso() -> str:
     """Returns current UTC timestamp in ISO 8601 format."""
@@ -26,6 +29,18 @@ def get_output_dir() -> str:
     if env_dir:
         return os.path.abspath(env_dir)
     return get_project_root()
+
+def get_ticketmaster_key() -> str:
+    """Returns Ticketmaster API key from environment."""
+    return os.getenv("TICKETMASTER_API_KEY", "").strip()
+
+def get_ridb_key() -> str:
+    """Returns RIDB API key from environment."""
+    return os.getenv("RIDB_API_KEY", "").strip()
+
+def get_previous_events_url() -> str:
+    """Returns previous events URL from environment."""
+    return os.getenv("PREVIOUS_EVENTS_URL", "https://ziyaarslanturk.github.io/Etkinliktoplama/events.json").strip()
 
 def load_sources_config() -> List[Dict[str, Any]]:
     """Loads sources configuration from config/sources.json."""
