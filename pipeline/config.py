@@ -1,11 +1,20 @@
 """
 Configuration module for Etkinliktoplama data pipeline.
-Provides load_sources_config, load_sources, and get_output_dir.
+Provides now_iso, today_utc, load_sources_config, load_sources, and get_output_dir.
 """
 
 import json
 import os
+from datetime import datetime, timezone
 from typing import List, Dict, Any
+
+def now_iso() -> str:
+    """Returns current UTC timestamp in ISO 8601 format."""
+    return datetime.now(timezone.utc).isoformat()
+
+def today_utc() -> str:
+    """Returns current UTC date in YYYY-MM-DD format."""
+    return datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
 def get_project_root() -> str:
     """Returns absolute path to project root directory."""
