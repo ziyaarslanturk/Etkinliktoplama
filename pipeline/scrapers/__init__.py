@@ -1,4 +1,19 @@
-"""Kaynak modülleri. Her modül: NAME ve fetch(ctx) -> list[dict] sağlar."""
-from . import community, federations, local_official, recreation_gov, ticketmaster, wikidata
+from .ticketmaster import scrape_ticketmaster
+from .recreation_gov import scrape_recreation_gov
+from .wikidata import scrape_wikidata
+from .community import scrape_community
+from .local_official import scrape_local_official
+from .federations import scrape_federations
+from .pages import scrape_pages
+from .web_social import scrape_web_social
 
-SCRAPERS = [ticketmaster, recreation_gov, federations, wikidata, local_official, community]
+__all__ = [
+    "scrape_ticketmaster",
+    "scrape_recreation_gov",
+    "scrape_wikidata",
+    "scrape_community",
+    "scrape_local_official",
+    "scrape_federations",
+    "scrape_pages",
+    "scrape_web_social",
+]
