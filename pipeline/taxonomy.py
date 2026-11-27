@@ -1,10 +1,22 @@
 """
 Taxonomy and category classification for event pipeline.
 Categorizes events by interest: concert, festival, fair, camping, outdoor, sport, culture, other.
+Provides ISO_COUNTRIES, VALID_INTERESTS, and is_valid_class validator.
 """
 
 import re
-from typing import Tuple
+from typing import Tuple, Dict, Any, Union, Set
+
+ISO_COUNTRIES: Set[str] = {
+    "TR", "US", "DE", "FR", "GB", "NL", "IT", "ES", "AT", "CH", "BE", "SE", "NO", "FI",
+    "DK", "PL", "CZ", "GR", "PT", "IE", "CA", "AU", "NZ", "JP", "KR", "BR", "MX", "AR",
+    "EG", "AE", "SA", "QA", "AZ", "GE", "RU", "UA", "RO", "BG", "HU", "SK", "HR", "RS"
+}
+
+VALID_INTERESTS: Set[str] = {
+    "concert", "festival", "fair", "camping", "outdoor", "sport", "culture", "other",
+    "music", "sports", "arts", "family", "community", "conference"
+}
 
 TAXONOMY_MAP = {
     "concert": [
@@ -41,6 +53,17 @@ TAXONOMY_MAP = {
         "bale", "dans", "dance", "opera", "müze", "museum"
     ]
 }
+
+def is_valid_class(classification: Union[Dict[str, Any], str]) -> bool:
+    """Validates whether a classification object or string interest is valid."""
+    if not classification:
+        return False
+    if isinstance(classification, str):
+        return classification.lower() in VALID_INTERESTS
+    if isinstance(classification, dict):
+        interest = classification.get("interest", "")
+        return str(interest).lower() in VALID_INTERESTS
+    return False
 
 def classify_event(title: str, description: str = "") -> Tuple[str, str]:
     """
