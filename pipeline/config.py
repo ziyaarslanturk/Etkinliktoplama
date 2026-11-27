@@ -1,6 +1,6 @@
 """
 Configuration module for Etkinliktoplama data pipeline.
-Provides now_iso, today_utc, load_sources_config, load_sources, get_output_dir, and environment getters.
+Provides time helpers, environment getters, output dir paths, and source configs.
 """
 
 import json
@@ -51,7 +51,6 @@ def load_sources_config() -> List[Dict[str, Any]]:
         config_path = os.path.join(root, "config", "sources.default.json")
 
     if not os.path.exists(config_path):
-        # Fallback default sources
         return [
             {"id": "community", "enabled": True},
             {"id": "web_social", "enabled": True},
@@ -74,5 +73,5 @@ def load_sources_config() -> List[Dict[str, Any]]:
 
     return []
 
-# Alias for backwards compatibility
+# Aliases
 load_sources = load_sources_config
