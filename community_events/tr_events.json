@@ -1,0 +1,178 @@
+{
+  "events": [
+    {
+      "id": "tr-2025-izmir-kamp-karavan-fuari",
+      "title": "İzmir Kamp, Karavan ve Doğa Sporları Fuarı",
+      "poster_url": "https://images.unsplash.com/photo-1510312305653-8ed496efae75?auto=format&fit=crop&w=800&q=80",
+      "classification": {
+        "interest": "fair",
+        "sub_type": "Fuar & Doğa Sporları"
+      },
+      "schedule": {
+        "start_date": "2025-05-15",
+        "start_time": "10:00",
+        "end_date": "2025-05-18",
+        "timezone": "Europe/Istanbul"
+      },
+      "location": {
+        "venue_name": "Fuar İzmir (Gaziemir)",
+        "city": "İzmir",
+        "country_code": "TR"
+      },
+      "details": {
+        "organizer": "İZFAŞ / KampKaravan Derneği",
+        "summary": "Türkiye'nin en büyük kamp, karavan, tiny house ve açık hava ekipmanları fuarı. 100'den fazla üretici ve doğasever bir arada.",
+        "entry_fee": "Biletli / 150 TL"
+      },
+      "links": {
+        "official_url": "https://fuarizmir.com.tr",
+        "ticket_or_register_url": "https://biletinial.com"
+      }
+    },
+    {
+      "id": "tr-2025-oludeniz-hava-oyunlari",
+      "title": "Uluslararası Ölüdeniz Hava Oyunları Festivali",
+      "poster_url": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80",
+      "classification": {
+        "interest": "festival",
+        "sub_type": "Hava Oyunları & Doğa"
+      },
+      "schedule": {
+        "start_date": "2025-10-22",
+        "start_time": "09:00",
+        "end_date": "2025-10-26",
+        "timezone": "Europe/Istanbul"
+      },
+      "location": {
+        "venue_name": "Babadağ / Ölüdeniz Plajı",
+        "city": "Muğla (Fethiye)",
+        "country_code": "TR"
+      },
+      "details": {
+        "organizer": "Fethiye Belediyesi & THK",
+        "summary": "Yamaç paraşütü, akrobasi gösterileri, serbest paraşüt ve akustik akşam konserleriyle dolu uluslararası doğa festivali.",
+        "entry_fee": "Ücretsiz"
+      },
+      "links": {
+        "official_url": "https://fethiye.bel.tr",
+        "ticket_or_register_url": "https://fethiye.bel.tr"
+      }
+    },
+    {
+      "id": "tr-2025-cappadox-festival",
+      "title": "Cappadox 2025 Doğa, Müzik ve Çağdaş Sanat Festivali",
+      "poster_url": "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=800&q=80",
+      "classification": {
+        "interest": "concert",
+        "sub_type": "Müzik & Festival"
+      },
+      "schedule": {
+        "start_date": "2025-06-12",
+        "start_time": "16:00",
+        "end_date": "2025-06-15",
+        "timezone": "Europe/Istanbul"
+      },
+      "location": {
+        "venue_name": "Uçhisar & Güvercinlik Vadisi",
+        "city": "Nevşehir (Kapadokya)",
+        "country_code": "TR"
+      },
+      "details": {
+        "organizer": "Pozitif",
+        "summary": "Kapadokya'nın eşsiz coğrafyasında gün doğumu yürüyüşleri, açık hava konserleri, çağdaş sanat sergileri ve gurme tadım etkinlikleri.",
+        "entry_fee": "Biletli"
+      },
+      "links": {
+        "official_url": "https://cappadox.com",
+        "ticket_or_register_url": "https://passo.com.tr"
+      }
+    },
+    {
+      "id": "tr-2025-antalya-outdoor-fest",
+      "title": "Antalya Kamp ve Açık Hava Doğa Şenliği",
+      "poster_url": "https://images.unsplash.com/photo-1478131143081-80f7f84ca84d?auto=format&fit=crop&w=800&q=80",
+      "classification": {
+        "interest": "festival",
+        "sub_type": "Kamp & Doğa Sporları"
+      },
+      "schedule": {
+        "start_date": "2025-09-19",
+        "start_time": "12:00",
+        "end_date": "2025-09-21",
+        "timezone": "Europe/Istanbul"
+      },
+      "location": {
+        "venue_name": "Köprülü Kanyon Kamp Alanı",
+        "city": "Antalya (Manavgat)",
+        "country_code": "TR"
+      },
+      "details": {
+        "organizer": "Akdeniz Doğa Sporları Kulübü",
+        "summary": "Rafting, trekking, kamp ateşi başında akustik konserler, astro-fotoğrafçılık atölyesi ve doğada yaşam eğitimi.",
+        "entry_fee": "Ücretsiz"
+      },
+      "links": {
+        "official_url": "https://antalya.bel.tr",
+        "ticket_or_register_url": "https://antalya.bel.tr"
+      }
+    },
+    {
+      "id": "tr-2025-istanbul-outdoor-expo",
+      "title": "İstanbul Karavan & Outdoor Ekipmanları Fuarı",
+      "poster_url": "https://images.unsplash.com/photo-1523987355523-c7b5b0dd90a7?auto=format&fit=crop&w=800&q=80",
+      "classification": {
+        "interest": "fair",
+        "sub_type": "Karavan & Fuar"
+      },
+      "schedule": {
+        "start_date": "2025-11-05",
+        "start_time": "10:00",
+        "end_date": "2025-11-09",
+        "timezone": "Europe/Istanbul"
+      },
+      "location": {
+        "venue_name": "TÜYAP Fuar ve Kongre Merkezi",
+        "city": "İstanbul (Büyükçekmece)",
+        "country_code": "TR"
+      },
+      "details": {
+        "organizer": "TÜYAP & KAİDER",
+        "summary": "Son teknoloji çekme ve motokaravanlar, araç üstü çadırlar, off-road araçları ve solar enerji sistemleri sergisi.",
+        "entry_fee": "Biletli / 120 TL"
+      },
+      "links": {
+        "official_url": "https://tuyap.com.tr",
+        "ticket_or_register_url": "https://biletix.com"
+      }
+    },
+    {
+      "id": "tr-2025-zeytinli-rock-festivali",
+      "title": "Zeytinli Rock Festivali 2025",
+      "poster_url": "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=800&q=80",
+      "classification": {
+        "interest": "concert",
+        "sub_type": "Müzik & Kamp"
+      },
+      "schedule": {
+        "start_date": "2025-08-20",
+        "start_time": "14:00",
+        "end_date": "2025-08-24",
+        "timezone": "Europe/Istanbul"
+      },
+      "location": {
+        "venue_name": "Zeytinli Dalyan Sahili",
+        "city": "Balıkesir (Edremit)",
+        "country_code": "TR"
+      },
+      "details": {
+        "organizer": "Milyon Yapım",
+        "summary": "Türkiye'nin köklü rock ve alternatif müzik kamp festivali. Deniz kenarında 5 gün boyunca kamp ve canlı performanslar.",
+        "entry_fee": "Balkon & Kamp Kombine"
+      },
+      "links": {
+        "official_url": "https://milyonyapim.com",
+        "ticket_or_register_url": "https://biletix.com"
+      }
+    }
+  ]
+}
