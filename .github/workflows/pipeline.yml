@@ -1,52 +1,53 @@
-name: Etkinlik Veri Boru Hattı
+name: Event Collection Pipeline
 
 on:
   schedule:
-    - cron: "0 */6 * * *"      # günde 4 kez (00:00, 06:00, 12:00, 18:00 UTC)
+    - cron: '0 */6 * * *'
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths:
-      - "pipeline/**"
-      - "community_events/**"
-      - "config/**"
-      - ".github/workflows/pipeline.yml"
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
-
-concurrency:
-  group: pages
-  cancel-in-progress: false
+  contents: write
 
 jobs:
-  build:
+  run-pipeline:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - name: Checkout Repository
+        uses: actions/checkout@v4
         with:
-          python-version: "3.12"
-      - name: Verileri topla, doğrula, site/ klasörünü üret
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Run Tests
+        run: |
+          python -m unittest discover tests
+
+      - name: Run Pipeline
         env:
           TICKETMASTER_API_KEY: ${{ secrets.TICKETMASTER_API_KEY }}
           RIDB_API_KEY: ${{ secrets.RIDB_API_KEY }}
-          PREVIOUS_EVENTS_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/events.json
-        run: python -m pipeline.main
-      - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: site
+          PREVIOUS_EVENTS_URL: https://ziyaarslanturk.github.io/Etkinliktoplama/events.json
+        run: |
+          python -m pipeline.main
 
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - id: deployment
-        uses: actions/deploy-pages@v4
+      - name: Commit and Push Generated Events
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A events.json events/
+          if git diff --staged --quiet; then
+            echo "No changes in generated events."
+          else
+            git commit -m "chore: auto-update generated event feeds [skip ci]"
+            git push origin main
+          fi
